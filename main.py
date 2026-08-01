@@ -8,7 +8,7 @@ from google.genai import types
 
 # MoviePy & PIL for Video Assembly
 from moviepy.editor import TextClip, CompositeVideoClip, AudioFileClip, ColorClip
-
+from moviepy import TextClip, CompositeVideoClip, AudioFileClip, ColorClip
 # YouTube Upload Libraries
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
