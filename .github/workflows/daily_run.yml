@@ -1,0 +1,28 @@
+name: 5:30 AM Daily Hindi News Generator
+
+on:
+  schedule:
+    # 00:00 UTC corresponds to 5:30 AM IST daily
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  run-automation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Libraries
+        run: |
+          pip install google-genai feedparser
+
+      - name: Run News Verification Script
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python main.py
