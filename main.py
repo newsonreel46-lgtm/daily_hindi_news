@@ -85,17 +85,30 @@ def build_news_video(audio_file="final_news_audio.mp3", output_file="final_news_
     duration = audio_clip.duration
 
     bg_clip = ColorClip(size=(1920, 1080), color=(20, 20, 30), duration=duration)
-    title_clip = TextClip("DAILY HINDI NEWS BULLETIN", fontsize=50, color='white', bg_color='red', size=(1920, 100))
-    title_clip = title_clip.set_position(('center', 'top')).set_duration(duration)
+    
+    # Updated 'font_size' for MoviePy v2.x compatibility
+    title_clip = TextClip(
+        text="DAILY HINDI NEWS BULLETIN", 
+        font_size=50, 
+        color='white', 
+        bg_color='red', 
+        size=(1920, 100)
+    ).with_position(('center', 'top')).with_duration(duration)
 
-    ticker_clip = TextClip("Top Stories | Fact-Checked Updates", fontsize=40, color='yellow', bg_color='black', size=(1920, 80))
-    ticker_clip = ticker_clip.set_position(('center', 900)).set_duration(duration)
+    ticker_clip = TextClip(
+        text="Top Stories | Fact-Checked Updates", 
+        font_size=40, 
+        color='yellow', 
+        bg_color='black', 
+        size=(1920, 80)
+    ).with_position(('center', 900)).with_duration(duration)
 
     video = CompositeVideoClip([bg_clip, title_clip, ticker_clip])
-    video = video.set_audio(audio_clip)
+    video = video.with_audio(audio_clip)
 
     video.write_videofile(output_file, fps=24, codec="libx264", audio_codec="aac")
     print(f"Video created successfully: {output_file}")
+
 
 def upload_to_youtube(video_file="final_news_video.mp4"):
     print("Uploading news video to YouTube...")
