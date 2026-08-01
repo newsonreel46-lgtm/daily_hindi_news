@@ -46,7 +46,7 @@ def verify_and_generate_script(articles):
     """
 
     response = client.models.generate_content(
-        model="gemini-2.5-flash",  # gemini-1.5-flash was shut down; this is the current stable replacement
+        model="gemini-3.5-flash",  # gemini-1.5-flash and gemini-2.5-flash are both closed off now; this is the current generation
         contents=prompt,
         config=types.GenerateContentConfig(
             response_mime_type="application/json",  # forces clean JSON, avoids ```json fences
