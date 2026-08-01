@@ -41,8 +41,9 @@ def verify_and_generate_script(articles):
       {{"category": "National", "headline": "...", "hindi_narration": "..."}}
     ]
     """
+    # Updated to gemini-2.5-flash
     response = client.models.generate_content(
-        model='gemini-1.5-flash',
+        model='gemini-2.5-flash',
         contents=prompt,
     )
     return response.text
