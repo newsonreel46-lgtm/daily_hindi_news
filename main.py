@@ -1,6 +1,8 @@
 import os
 import json
+import asyncio
 import feedparser
+import edge_tts
 from google import genai
 from google.genai import types
 
@@ -39,30 +41,45 @@ def verify_and_generate_script(articles):
     4. Select the top 10 VERIFIED stories across National, International, Business, and Sports.
     5. Write a short 30-40 second news narration in natural spoken Hindi (Devanagari script) for each verified story.
 
-    Output format MUST be valid JSON:
+    Output format MUST be valid JSON array of objects:
     [
       {{"category": "National", "headline": "...", "hindi_narration": "..."}}
     ]
     """
 
     response = client.models.generate_content(
-        model="gemini-3.5-flash",  # gemini-1.5-flash and gemini-2.5-flash are both closed off now; this is the current generation
+        model="gemini-3.5-flash",
         contents=prompt,
         config=types.GenerateContentConfig(
-            response_mime_type="application/json",  # forces clean JSON, avoids ```json fences
+            response_mime_type="application/json",
         ),
     )
     return response.text
 
 
 def clean_json_text(text):
-    """Fallback in case the model still wraps output in markdown fences."""
+    """Fallback in case the model wraps output in markdown fences."""
     text = text.strip()
     if text.startswith("```"):
         text = text.strip("`")
         if text.startswith("json"):
             text = text[4:]
     return text.strip()
+
+
+async def generate_hindi_audio(script_data, output_file="final_news_audio.mp3"):
+    """Combines all narration text and converts it to a single MP3 file."""
+    full_narration = ""
+    
+    # Extract the narration from each verified news item
+    for item in script_data:
+        full_narration += f"{item.get('hindi_narration', '')}\n\n"
+
+    # Microsoft Edge Neural Voice for Natural Hindi
+    voice = "hi-IN-SwaraNeural"
+    communicate = edge_tts.Communicate(full_narration, voice)
+    await communicate.save(output_file)
+    print(f"\nHindi Voiceover successfully generated and saved to {output_file}!")
 
 
 if __name__ == "__main__":
@@ -75,8 +92,13 @@ if __name__ == "__main__":
 
     try:
         parsed = json.loads(final_script_clean)
-        print("\nVerified Hindi Script Ready:\n")
+        print("\nVerified Hindi Script Ready:")
         print(json.dumps(parsed, ensure_ascii=False, indent=2))
+
+        # Generate Audio File from verified script
+        print("\nGenerating Audio Voiceover using Edge-TTS...")
+        asyncio.run(generate_hindi_audio(parsed))
+
     except json.JSONDecodeError as e:
         print(f"\nWarning: could not parse model output as JSON ({e}). Raw output below:\n")
         print(final_script_raw)
