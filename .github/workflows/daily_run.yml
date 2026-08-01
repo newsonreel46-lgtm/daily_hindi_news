@@ -18,22 +18,19 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install System Dependencies (FFmpeg & ImageMagick)
+      - name: Install System Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg imagemagick
 
       - name: Install Python Libraries
         run: |
-          pip install google-genai feedparser edge-tts moviepy pillow
+          pip install google-genai feedparser edge-tts moviepy pillow google-api-python-client google-auth-oauthlib
 
-      - name: Run News Verification & Video Generation Script
+      - name: Run Full Pipeline (Scrape -> Script -> Audio -> Video -> YouTube)
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
         run: python main.py
-
-      - name: Save Video File Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: hindi-news-video
-          path: final_news_video.mp4
