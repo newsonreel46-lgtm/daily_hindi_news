@@ -6,7 +6,10 @@ import edge_tts
 from google import genai
 from google.genai import types
 
-# Configure Google Gemini Client using your repository secret
+# MoviePy & PIL for Video Assembly
+from moviepy.editor import TextClip, CompositeVideoClip, AudioFileClip, ColorClip
+
+# Configure Google Gemini Client
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
 # Official Morning RSS Feeds
@@ -15,7 +18,6 @@ SOURCES = [
     "https://timesofindia.indiatimes.com/rssfeedstopstories.cms",
     "https://economictimes.indiatimes.com/rssfeedstopstories.cms"
 ]
-
 
 def fetch_all_headlines():
     raw_articles = []
@@ -27,7 +29,6 @@ def fetch_all_headlines():
                 "summary": entry.get("summary", "")
             })
     return raw_articles
-
 
 def verify_and_generate_script(articles):
     prompt = f"""
@@ -56,9 +57,7 @@ def verify_and_generate_script(articles):
     )
     return response.text
 
-
 def clean_json_text(text):
-    """Fallback in case the model wraps output in markdown fences."""
     text = text.strip()
     if text.startswith("```"):
         text = text.strip("`")
@@ -66,39 +65,55 @@ def clean_json_text(text):
             text = text[4:]
     return text.strip()
 
-
 async def generate_hindi_audio(script_data, output_file="final_news_audio.mp3"):
-    """Combines all narration text and converts it to a single MP3 file."""
     full_narration = ""
-    
-    # Extract the narration from each verified news item
     for item in script_data:
         full_narration += f"{item.get('hindi_narration', '')}\n\n"
 
-    # Microsoft Edge Neural Voice for Natural Hindi
     voice = "hi-IN-SwaraNeural"
     communicate = edge_tts.Communicate(full_narration, voice)
     await communicate.save(output_file)
-    print(f"\nHindi Voiceover successfully generated and saved to {output_file}!")
+    print(f"Audio file saved: {output_file}")
 
+def build_news_video(audio_file="final_news_audio.mp3", output_file="final_news_video.mp4"):
+    print("Building 1080p News Video with MoviePy...")
+    audio_clip = AudioFileClip(audio_file)
+    duration = audio_clip.duration
+
+    # Create dark red news studio background (1920x1080)
+    bg_clip = ColorClip(size=(1920, 1080), color=(20, 20, 30), duration=duration)
+
+    # Title Banner (Top)
+    title_clip = TextClip("DAILY HINDI NEWS BULLETIN", fontsize=50, color='white', bg_color='red', size=(1920, 100))
+    title_clip = title_clip.set_position(('center', 'top')).set_duration(duration)
+
+    # Lower Third News Banner (Bottom Ticker)
+    ticker_clip = TextClip("Top Stories | Fact-Checked Updates", fontsize=40, color='yellow', bg_color='black', size=(1920, 80))
+    ticker_clip = ticker_clip.set_position(('center', 900)).set_duration(duration)
+
+    # Combine video and audio layers
+    video = CompositeVideoClip([bg_clip, title_clip, ticker_clip])
+    video = video.set_audio(audio_clip)
+
+    # Render MP4 file
+    video.write_videofile(output_file, fps=24, codec="libx264", audio_codec="aac")
+    print(f"Video created successfully: {output_file}")
 
 if __name__ == "__main__":
-    print("Fetching 5:30 AM News...")
+    print("1. Fetching 5:30 AM News...")
     news = fetch_all_headlines()
-    print(f"Fetched {len(news)} raw items. Verifying with Gemini Fact-Checker...")
 
+    print("2. Verifying and Generating Script...")
     final_script_raw = verify_and_generate_script(news)
     final_script_clean = clean_json_text(final_script_raw)
 
     try:
         parsed = json.loads(final_script_clean)
-        print("\nVerified Hindi Script Ready:")
-        print(json.dumps(parsed, ensure_ascii=False, indent=2))
-
-        # Generate Audio File from verified script
-        print("\nGenerating Audio Voiceover using Edge-TTS...")
+        print("3. Generating Hindi Voiceover...")
         asyncio.run(generate_hindi_audio(parsed))
 
-    except json.JSONDecodeError as e:
-        print(f"\nWarning: could not parse model output as JSON ({e}). Raw output below:\n")
-        print(final_script_raw)
+        print("4. Compiling Final News Video...")
+        build_news_video()
+
+    except Exception as e:
+        print(f"Error during execution: {e}")
