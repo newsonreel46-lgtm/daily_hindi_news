@@ -109,16 +109,18 @@ def build_news_video(audio_file="final_news_audio.mp3", output_file="final_news_
     video.write_videofile(output_file, fps=24, codec="libx264", audio_codec="aac")
     print(f"Video created successfully: {output_file}")
 
-
 def upload_to_youtube(video_file="final_news_video.mp4"):
     print("Uploading news video to YouTube...")
+    
+    SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
     
     creds = Credentials(
         token=None,
         refresh_token=os.environ["YOUTUBE_REFRESH_TOKEN"],
-        token_uri="[https://oauth2.googleapis.com/token](https://oauth2.googleapis.com/token)",
+        token_uri="https://oauth2.googleapis.com/token",
         client_id=os.environ["YOUTUBE_CLIENT_ID"],
-        client_secret=os.environ["YOUTUBE_CLIENT_SECRET"]
+        client_secret=os.environ["YOUTUBE_CLIENT_SECRET"],
+        scopes=SCOPES  # Added explicit scopes here
     )
 
     youtube = build("youtube", "v3", credentials=creds)
@@ -139,8 +141,7 @@ def upload_to_youtube(video_file="final_news_video.mp4"):
     request = youtube.videos().insert(part="snippet,status", body=body, media_body=media)
     
     response = request.execute()
-    print(f"Video uploaded successfully! Video ID: [https://youtu.be/](https://youtu.be/){response.get('id')}")
-
+    print(f"Video uploaded successfully! Video ID: https://youtu.be/{response.get('id')}")
 if __name__ == "__main__":
     print("1. Fetching News...")
     news = fetch_all_headlines()
