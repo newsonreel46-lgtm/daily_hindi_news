@@ -9,10 +9,14 @@ from google.genai import types
 # MoviePy & PIL for Video Assembly
 from moviepy.editor import TextClip, CompositeVideoClip, AudioFileClip, ColorClip
 
+# YouTube Upload Libraries
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
+
 # Configure Google Gemini Client
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
-# Official Morning RSS Feeds
 SOURCES = [
     "https://www.thehindu.com/news/national/feeder/default.rss",
     "https://timesofindia.indiatimes.com/rssfeedstopstories.cms",
@@ -80,40 +84,69 @@ def build_news_video(audio_file="final_news_audio.mp3", output_file="final_news_
     audio_clip = AudioFileClip(audio_file)
     duration = audio_clip.duration
 
-    # Create dark red news studio background (1920x1080)
     bg_clip = ColorClip(size=(1920, 1080), color=(20, 20, 30), duration=duration)
-
-    # Title Banner (Top)
     title_clip = TextClip("DAILY HINDI NEWS BULLETIN", fontsize=50, color='white', bg_color='red', size=(1920, 100))
     title_clip = title_clip.set_position(('center', 'top')).set_duration(duration)
 
-    # Lower Third News Banner (Bottom Ticker)
     ticker_clip = TextClip("Top Stories | Fact-Checked Updates", fontsize=40, color='yellow', bg_color='black', size=(1920, 80))
     ticker_clip = ticker_clip.set_position(('center', 900)).set_duration(duration)
 
-    # Combine video and audio layers
     video = CompositeVideoClip([bg_clip, title_clip, ticker_clip])
     video = video.set_audio(audio_clip)
 
-    # Render MP4 file
     video.write_videofile(output_file, fps=24, codec="libx264", audio_codec="aac")
     print(f"Video created successfully: {output_file}")
 
+def upload_to_youtube(video_file="final_news_video.mp4"):
+    print("Uploading news video to YouTube...")
+    
+    creds = Credentials(
+        token=None,
+        refresh_token=os.environ["YOUTUBE_REFRESH_TOKEN"],
+        token_uri="[https://oauth2.googleapis.com/token](https://oauth2.googleapis.com/token)",
+        client_id=os.environ["YOUTUBE_CLIENT_ID"],
+        client_secret=os.environ["YOUTUBE_CLIENT_SECRET"]
+    )
+
+    youtube = build("youtube", "v3", credentials=creds)
+
+    body = {
+        "snippet": {
+            "title": "Daily Hindi News Bulletin | Fact-Checked News Update",
+            "description": "Daily automated morning Hindi news bulletin.",
+            "tags": ["Hindi News", "Daily News", "News Update"],
+            "categoryId": "25"  # News & Politics
+        },
+        "status": {
+            "privacyStatus": "public"
+        }
+    }
+
+    media = MediaFileUpload(video_file, chunksize=-1, resumable=True)
+    request = youtube.videos().insert(part="snippet,status", body=body, media_body=media)
+    
+    response = request.execute()
+    print(f"Video uploaded successfully! Video ID: [https://youtu.be/](https://youtu.be/){response.get('id')}")
+
 if __name__ == "__main__":
-    print("1. Fetching 5:30 AM News...")
+    print("1. Fetching News...")
     news = fetch_all_headlines()
 
-    print("2. Verifying and Generating Script...")
+    print("2. Verifying & Scripting...")
     final_script_raw = verify_and_generate_script(news)
     final_script_clean = clean_json_text(final_script_raw)
 
     try:
         parsed = json.loads(final_script_clean)
-        print("3. Generating Hindi Voiceover...")
+        
+        print("3. Generating Audio...")
         asyncio.run(generate_hindi_audio(parsed))
 
-        print("4. Compiling Final News Video...")
+        print("4. Rendering Video...")
         build_news_video()
+
+        print("5. Uploading to YouTube...")
+        upload_to_youtube()
 
     except Exception as e:
         print(f"Error during execution: {e}")
