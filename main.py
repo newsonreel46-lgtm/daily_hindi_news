@@ -42,7 +42,7 @@ def verify_and_generate_script(articles):
     ]
     """
     response = client.models.generate_content(
-        model='gemini-2.5-flash',
+        model='gemini-1.5-flash',
         contents=prompt,
     )
     return response.text
@@ -54,4 +54,3 @@ if __name__ == "__main__":
     final_script = verify_and_generate_script(news)
     print("\nVerified Hindi Script Ready:\n")
     print(final_script)
-  
