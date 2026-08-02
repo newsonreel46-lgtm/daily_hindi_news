@@ -1,9 +1,10 @@
-name: 5:30 AM Daily Hindi News Generator
+name: 5:45 AM Daily Hindi News Generator
 
 on:
   schedule:
-    # 00:10 UTC corresponds to 5:40 AM IST daily
-    - cron: '10 0 * * *'
+    # 00:15 UTC corresponds to 5:45 AM IST
+    - cron: '15 0 * * *'
+  
   workflow_dispatch:
 
 jobs:
