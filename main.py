@@ -5,7 +5,8 @@ import feedparser
 import edge_tts
 from google import genai
 from google.genai import types
-
+import requests
+from moviepy.editor import (AudioFileClip, ImageClip, TextClip, CompositeVideoClip, ColorClip)
 # MoviePy & PIL for Video Assembly
 
 from moviepy import TextClip, CompositeVideoClip, AudioFileClip, ColorClip
@@ -79,36 +80,86 @@ async def generate_hindi_audio(script_data, output_file="final_news_audio.mp3"):
     await communicate.save(output_file)
     print(f"Audio file saved: {output_file}")
 
+
+
+def download_news_background(image_path="news_bg.jpg"):
+    """Downloads a high-quality news studio/world news background image."""
+    # Using a high-res news graphic URL
+    url = "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=1920&q=80"
+    response = requests.get(url)
+    if response.status_code == 200:
+        with open(image_path, "wb") as f:
+            f.write(response.content)
+        return image_path
+    return None
+
 def build_news_video(audio_file="final_news_audio.mp3", output_file="final_news_video.mp4"):
-    print("Building 1080p News Video with MoviePy...")
+    print("Building Dynamic TV-Style News Video...")
+    
+    # 1. Load Audio
     audio_clip = AudioFileClip(audio_file)
     duration = audio_clip.duration
 
-    bg_clip = ColorClip(size=(1920, 1080), color=(20, 20, 30), duration=duration)
+    # 2. Dynamic Visual Background
+    bg_path = download_news_background()
     
-    # Updated 'font_size' for MoviePy v2.x compatibility
-    title_clip = TextClip(
-        text="DAILY HINDI NEWS BULLETIN", 
-        font_size=50, 
+    if bg_path and os.path.exists(bg_path):
+        # High quality image background with slight zoom effect
+        base_clip = ImageClip(bg_path).set_duration(duration).resize((1920, 1080))
+        # Subtle zoom animation for visual movement
+        base_clip = base_clip.resize(lambda t: 1 + 0.03 * t) 
+    else:
+        # Fallback dark gradient studio color
+        base_clip = ColorClip(size=(1920, 1080), color=(15, 23, 42), duration=duration)
+
+    # 3. Top News Channel Header (Red Banner)
+    header_bg = ColorClip(size=(1920, 120), color=(220, 38, 38)).set_duration(duration)
+    header_text = TextClip(
+        "DAILY HINDI NEWS BULLETIN", 
+        font_size=55, 
         color='white', 
-        bg_color='red', 
-        size=(1920, 100)
-    ).with_position(('center', 'top')).with_duration(duration)
+        font='Arial-Bold'
+    ).set_duration(duration)
+    
+    header_composite = CompositeVideoClip([
+        header_bg, 
+        header_text.set_position(('center', 'center'))
+    ]).set_position(('center', 'top'))
 
-    ticker_clip = TextClip(
-        text="Top Stories | Fact-Checked Updates", 
-        font_size=40, 
-        color='yellow', 
-        bg_color='black', 
-        size=(1920, 80)
-    ).with_position(('center', 900)).with_duration(duration)
+    # 4. Professional Lower-Third News Ticker (Yellow on Dark Blue)
+    ticker_bg = ColorClip(size=(1920, 140), color=(15, 23, 42)).set_duration(duration)
+    ticker_accent = ColorClip(size=(1920, 8), color=(234, 179, 8)).set_duration(duration) # Gold line
+    
+    ticker_text = TextClip(
+        "LIVE UPDATES | TOP FACT-CHECKED HEADLINES", 
+        font_size=42, 
+        color='#FACC15', 
+        font='Arial-Bold'
+    ).set_duration(duration)
 
-    video = CompositeVideoClip([bg_clip, title_clip, ticker_clip])
-    video = video.with_audio(audio_clip)
+    ticker_composite = CompositeVideoClip([
+        ticker_bg,
+        ticker_accent.set_position(('center', 'top')),
+        ticker_text.set_position(('center', 'center'))
+    ]).set_position(('center', 820)) # Positioned above bottom edge to prevent caption overlap
 
-    video.write_videofile(output_file, fps=24, codec="libx264", audio_codec="aac")
-    print(f"Video created successfully: {output_file}")
+    # 5. Composite All Layers Together
+    final_video = CompositeVideoClip([
+        base_clip,
+        header_composite,
+        ticker_composite
+    ]).set_audio(audio_clip)
 
+    # Render 1080p Video
+    final_video.write_videofile(
+        output_file, 
+        fps=24, 
+        codec="libx264", 
+        audio_codec="aac",
+        preset="fast"
+    )
+    print(f"Professional news video generated successfully: {output_file}")
+    
 def upload_to_youtube(video_file="final_news_video.mp4"):
     print("Uploading news video to YouTube...")
     
