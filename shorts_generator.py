@@ -27,6 +27,7 @@ def get_vertical_news_background(image_path="shorts_bg.jpg"):
     return None
 
 # 3. Build Vertical 9:16 Video
+# 3. Build Vertical 9:16 Video (Updated for MoviePy v2.x)
 def build_youtube_shorts(audio_file="shorts_audio.mp3", output_file="shorts_video.mp4"):
     print("Building 9:16 YouTube Shorts Video...")
     audio_clip = AudioFileClip(audio_file)
@@ -35,35 +36,35 @@ def build_youtube_shorts(audio_file="shorts_audio.mp3", output_file="shorts_vide
     # Vertical Canvas (1080x1920)
     bg_path = get_vertical_news_background()
     if bg_path and os.path.exists(bg_path):
-        bg_clip = ImageClip(bg_path).set_duration(duration).resize((1080, 1920))
+        bg_clip = ImageClip(bg_path).with_duration(duration).resized((1080, 1920))
         # Continuous zoom-in animation for engagement
-        bg_clip = bg_clip.resize(lambda t: 1 + 0.04 * t)
+        bg_clip = bg_clip.resized(lambda t: 1 + 0.04 * t)
     else:
         bg_clip = ColorClip(size=(1080, 1920), color=(15, 23, 42), duration=duration)
 
     # Top Header Badge
-    header_bg = ColorClip(size=(1080, 140), color=(220, 38, 38)).set_duration(duration)
-    header_text = TextClip("BREAKING NEWS | FACT CHECK", font_size=45, color='white', font='Arial-Bold').set_duration(duration)
-    header = CompositeVideoClip([header_bg, header_text.set_position(('center', 'center'))]).set_position(('center', 150))
+    header_bg = ColorClip(size=(1080, 140), color=(220, 38, 38)).with_duration(duration)
+    header_text = TextClip("BREAKING NEWS | FACT CHECK", font_size=45, color='white', font='Arial-Bold').with_duration(duration)
+    header = CompositeVideoClip([header_bg, header_text.with_position(('center', 'center'))]).with_position(('center', 150))
 
     # Center Visual Frame Box
-    center_box = ColorClip(size=(960, 1000), color=(0, 0, 0)).set_opacity(0.4).set_duration(duration).set_position(('center', 'center'))
+    center_box = ColorClip(size=(960, 1000), color=(0, 0, 0)).with_opacity(0.4).with_duration(duration).with_position(('center', 'center'))
 
     # Bottom Overlay Ticker
-    ticker_bg = ColorClip(size=(1080, 180), color=(15, 23, 42)).set_duration(duration)
-    ticker_text = TextClip("Subscribe for Daily Hindi Shorts!", font_size=38, color='#FACC15', font='Arial-Bold').set_duration(duration)
-    ticker = CompositeVideoClip([ticker_bg, ticker_text.set_position(('center', 'center'))]).set_position(('center', 1600))
+    ticker_bg = ColorClip(size=(1080, 180), color=(15, 23, 42)).with_duration(duration)
+    ticker_text = TextClip("Subscribe for Daily Hindi Shorts!", font_size=38, color='#FACC15', font='Arial-Bold').with_duration(duration)
+    ticker = CompositeVideoClip([ticker_bg, ticker_text.with_position(('center', 'center'))]).with_position(('center', 1600))
 
     final_shorts = CompositeVideoClip([
         bg_clip,
         center_box,
         header,
         ticker
-    ]).set_audio(audio_clip)
+    ]).with_audio(audio_clip)
 
     final_shorts.write_videofile(output_file, fps=30, codec="libx264", audio_codec="aac", preset="fast")
     print("Shorts Video Rendering Complete!")
-
+    
 # 4. Upload to YouTube as Shorts
 def upload_shorts(video_file="shorts_video.mp4"):
     print("Uploading to YouTube Shorts...")
