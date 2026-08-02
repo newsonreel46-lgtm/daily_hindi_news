@@ -105,53 +105,48 @@ def build_news_video(audio_file="final_news_audio.mp3", output_file="final_news_
     bg_path = download_news_background()
     
     if bg_path and os.path.exists(bg_path):
-        # High quality image background with slight zoom effect
-        base_clip = ImageClip(bg_path).set_duration(duration).resize((1920, 1080))
-        # Subtle zoom animation for visual movement
-        base_clip = base_clip.resize(lambda t: 1 + 0.03 * t) 
+        # MoviePy v2 syntax: with_duration & resized
+        base_clip = ImageClip(bg_path).with_duration(duration).resized((1920, 1080))
+        base_clip = base_clip.resized(lambda t: 1 + 0.03 * t) 
     else:
-        # Fallback dark gradient studio color
         base_clip = ColorClip(size=(1920, 1080), color=(15, 23, 42), duration=duration)
 
-    # 3. Top News Channel Header (Red Banner)
-    header_bg = ColorClip(size=(1920, 120), color=(220, 38, 38)).set_duration(duration)
+    # 3. Header Banner
+    header_bg = ColorClip(size=(1920, 120), color=(220, 38, 38)).with_duration(duration)
     header_text = TextClip(
-        "DAILY HINDI NEWS BULLETIN", 
+        text="DAILY HINDI NEWS BULLETIN", 
         font_size=55, 
-        color='white', 
-        font='Arial-Bold'
-    ).set_duration(duration)
+        color='white'
+    ).with_duration(duration)
     
     header_composite = CompositeVideoClip([
         header_bg, 
-        header_text.set_position(('center', 'center'))
-    ]).set_position(('center', 'top'))
+        header_text.with_position(('center', 'center'))
+    ]).with_position(('center', 'top'))
 
-    # 4. Professional Lower-Third News Ticker (Yellow on Dark Blue)
-    ticker_bg = ColorClip(size=(1920, 140), color=(15, 23, 42)).set_duration(duration)
-    ticker_accent = ColorClip(size=(1920, 8), color=(234, 179, 8)).set_duration(duration) # Gold line
+    # 4. Ticker Overlay
+    ticker_bg = ColorClip(size=(1920, 140), color=(15, 23, 42)).with_duration(duration)
+    ticker_accent = ColorClip(size=(1920, 8), color=(234, 179, 8)).with_duration(duration)
     
     ticker_text = TextClip(
-        "LIVE UPDATES | TOP FACT-CHECKED HEADLINES", 
+        text="LIVE UPDATES | TOP FACT-CHECKED HEADLINES", 
         font_size=42, 
-        color='#FACC15', 
-        font='Arial-Bold'
-    ).set_duration(duration)
+        color='#FACC15'
+    ).with_duration(duration)
 
     ticker_composite = CompositeVideoClip([
         ticker_bg,
-        ticker_accent.set_position(('center', 'top')),
-        ticker_text.set_position(('center', 'center'))
-    ]).set_position(('center', 820)) # Positioned above bottom edge to prevent caption overlap
+        ticker_accent.with_position(('center', 'top')),
+        ticker_text.with_position(('center', 'center'))
+    ]).with_position(('center', 820))
 
     # 5. Composite All Layers Together
     final_video = CompositeVideoClip([
         base_clip,
         header_composite,
         ticker_composite
-    ]).set_audio(audio_clip)
+    ]).with_audio(audio_clip)
 
-    # Render 1080p Video
     final_video.write_videofile(
         output_file, 
         fps=24, 
