@@ -16,14 +16,34 @@ async def generate_shorts_audio(text, output_file="shorts_audio.mp3"):
     print(f"Shorts audio saved to {output_file}")
 
 # 2. Fetch Visual Background for Shorts (Vertical 9:16)
-def get_vertical_news_background(image_path="shorts_bg.jpg"):
-    # Downloads high-res dynamic news background
-    url = "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=1080&h=1920&fit=crop"
-    res = requests.get(url)
-    if res.status_code == 200:
-        with open(image_path, "wb") as f:
-            f.write(res.content)
-        return image_path
+import urllib.parse
+
+def get_vertical_news_background(search_keyword="news", image_path="shorts_bg.jpg"):
+    """
+    Dynamically downloads a vertical (1080x1920) image matching the news topic keyword.
+    """
+    print(f"Fetching visual background for keyword: '{search_keyword}'...")
+    
+    # URL encode search query (e.g., 'train accident', 'flood india', 'space mission')
+    encoded_query = urllib.parse.quote(search_keyword)
+    
+    # Unsplash source dynamic vertical image endpoint
+    url = f"https://source.unsplash.com/1080x1920/?{encoded_query}"
+    
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+    }
+    
+    try:
+        res = requests.get(url, headers=headers, timeout=10)
+        if res.status_code == 200:
+            with open(image_path, "wb") as f:
+                f.write(res.content)
+            print("Successfully retrieved topic-matched background image!")
+            return image_path
+    except Exception as e:
+        print(f"Failed to fetch dynamic image: {e}")
+        
     return None
 
 # 3. Build Vertical 9:16 Video
