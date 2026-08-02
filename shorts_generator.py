@@ -5,7 +5,7 @@ import asyncio
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 from googleapiclient.http import MediaFileUpload
-from moviepy.editor import AudioFileClip, ImageClip, TextClip, CompositeVideoClip, ColorClip
+from moviepy import AudioFileClip, ImageClip, TextClip, CompositeVideoClip, ColorClip
 
 # 1. Generate Voiceover for Shorts (Short & Punchy ~25s)
 async def generate_shorts_audio(text, output_file="shorts_audio.mp3"):
