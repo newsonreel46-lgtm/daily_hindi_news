@@ -26,11 +26,12 @@ jobs:
 
       - name: Install Python Libraries
         run: |
-          pip install google-genai feedparser edge-tts moviepy pillow google-api-python-client google-auth-oauthlib
+          pip install google-genai feedparser edge-tts moviepy pillow google-api-python-client google-auth-oauthlib pydub requests
 
       - name: Run Full Pipeline (Scrape -> Script -> Audio -> Video -> YouTube)
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
