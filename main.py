@@ -6,7 +6,8 @@ import edge_tts
 from google import genai
 from google.genai import types
 import requests
-from moviepy.editor import (AudioFileClip, ImageClip, TextClip, CompositeVideoClip, ColorClip)
+# ✅ NEW (Compatible with MoviePy v2.x)
+from moviepy import AudioFileClip, ImageClip, TextClip, CompositeVideoClip, ColorClip
 # MoviePy & PIL for Video Assembly
 
 from moviepy import TextClip, CompositeVideoClip, AudioFileClip, ColorClip
