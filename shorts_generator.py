@@ -6,7 +6,7 @@ from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 from googleapiclient.http import MediaFileUpload
 from moviepy import AudioFileClip, ImageClip, TextClip, CompositeVideoClip, ColorClip
-
+import urllib.parse
 # 1. Generate Voiceover for Shorts (Short & Punchy ~25s)
 async def generate_shorts_audio(text, output_file="shorts_audio.mp3"):
     # Clear, engaging Hindi female voice
@@ -16,7 +16,7 @@ async def generate_shorts_audio(text, output_file="shorts_audio.mp3"):
     print(f"Shorts audio saved to {output_file}")
 
 # 2. Fetch Visual Background for Shorts (Vertical 9:16)
-import urllib.parse
+
 
 def get_vertical_news_background(search_keyword="news", image_path="shorts_bg.jpg"):
     """
