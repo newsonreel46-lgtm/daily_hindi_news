@@ -28,6 +28,7 @@ def get_vertical_news_background(image_path="shorts_bg.jpg"):
 
 # 3. Build Vertical 9:16 Video
 # 3. Build Vertical 9:16 Video (Updated for MoviePy v2.x)
+# 3. Build Vertical 9:16 Video (Updated for MoviePy v2.x)
 def build_youtube_shorts(audio_file="shorts_audio.mp3", output_file="shorts_video.mp4"):
     print("Building 9:16 YouTube Shorts Video...")
     audio_clip = AudioFileClip(audio_file)
@@ -44,7 +45,14 @@ def build_youtube_shorts(audio_file="shorts_audio.mp3", output_file="shorts_vide
 
     # Top Header Badge
     header_bg = ColorClip(size=(1080, 140), color=(220, 38, 38)).with_duration(duration)
-    header_text = TextClip("BREAKING NEWS | FACT CHECK", font_size=45, color='white', font='Arial-Bold').with_duration(duration)
+    
+    # TextClip in MoviePy v2 requires explicitly named parameters: text="...", font_size=...
+    header_text = TextClip(
+        text="BREAKING NEWS | FACT CHECK", 
+        font_size=45, 
+        color='white'
+    ).with_duration(duration)
+    
     header = CompositeVideoClip([header_bg, header_text.with_position(('center', 'center'))]).with_position(('center', 150))
 
     # Center Visual Frame Box
@@ -52,7 +60,13 @@ def build_youtube_shorts(audio_file="shorts_audio.mp3", output_file="shorts_vide
 
     # Bottom Overlay Ticker
     ticker_bg = ColorClip(size=(1080, 180), color=(15, 23, 42)).with_duration(duration)
-    ticker_text = TextClip("Subscribe for Daily Hindi Shorts!", font_size=38, color='#FACC15', font='Arial-Bold').with_duration(duration)
+    
+    ticker_text = TextClip(
+        text="Subscribe for Daily Hindi Shorts!", 
+        font_size=38, 
+        color='#FACC15'
+    ).with_duration(duration)
+    
     ticker = CompositeVideoClip([ticker_bg, ticker_text.with_position(('center', 'center'))]).with_position(('center', 1600))
 
     final_shorts = CompositeVideoClip([
@@ -63,8 +77,7 @@ def build_youtube_shorts(audio_file="shorts_audio.mp3", output_file="shorts_vide
     ]).with_audio(audio_clip)
 
     final_shorts.write_videofile(output_file, fps=30, codec="libx264", audio_codec="aac", preset="fast")
-    print("Shorts Video Rendering Complete!")
-    
+    print("Shorts Video Rendering Complete!")    
 # 4. Upload to YouTube as Shorts
 def upload_shorts(video_file="shorts_video.mp4"):
     print("Uploading to YouTube Shorts...")
